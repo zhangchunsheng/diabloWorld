@@ -1,0 +1,29 @@
+[2013-08-22 14:36:25.670000]
+ERROR
+	Unhandled Error
+Traceback (most recent call last):
+  File "appmain.py", line 27, in <module>
+    ser.start()
+  File "D:\Python27\lib\site-packages\firefly-1.2.2dev-py2.7.egg\firefly\server\server.py", line 109, in start
+    reactor.run()
+  File "D:\Python27\lib\site-packages\twisted\internet\base.py", line 1192, in run
+    self.mainLoop()
+  File "D:\Python27\lib\site-packages\twisted\internet\base.py", line 1201, in mainLoop
+    self.runUntilCurrent()
+--- <exception caught here> ---
+  File "D:\Python27\lib\site-packages\twisted\internet\base.py", line 824, in runUntilCurrent
+    call.func(*call.args, **call.kw)
+  File "D:\github\firefly\anheiServer-v1.0\anheisj\app\dbfront\dataloader.py", line 25, in CheckMemDB
+    MAdminManager().checkAdmins()
+  File "D:\Python27\lib\site-packages\firefly-1.2.2dev-py2.7.egg\firefly\dbentrust\madminanager.py", line 37, in checkAdmins
+    admin.checkAll()
+  File "D:\Python27\lib\site-packages\firefly-1.2.2dev-py2.7.egg\firefly\dbentrust\mmode.py", line 259, in checkAll
+    _pklist = util.getallkeys(key, mclient.connection)
+  File "D:\Python27\lib\site-packages\firefly-1.2.2dev-py2.7.egg\firefly\dbentrust\util.py", line 208, in getallkeys
+    itemsinfo = mem.get_stats('items')
+  File "D:\Python27\lib\site-packages\memcache.py", line 284, in get_stats
+    line = readline()
+  File "D:\Python27\lib\site-packages\memcache.py", line 1182, in readline
+    data = recv(4096)
+socket.error: [Errno 10054] 
+

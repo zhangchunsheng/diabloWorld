@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: firefly
+Version: 1.2.2dev
+Summary: game server framework
+Home-page: 9miao.com
+Author: Lan Jinmin
+Author-email: zhuiming.mu@gmail.com
+License: firefly
+Description: game server framework
+Keywords: twisted pb memcached
+Platform: UNKNOWN

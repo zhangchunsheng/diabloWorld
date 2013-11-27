@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html  PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN'  'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'><html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+<title>Twisted Documentation: 
+      Using the Twisted IRC Client
+    </title>
+<link href="stylesheet.css" rel="stylesheet" type="text/css"/>
+  </head>
+
+  <body bgcolor="white">
+    <h1 class="title">
+      Using the Twisted IRC Client
+    </h1>
+    <div class="toc"><ol><li><a href="#auto0">
+      Text formatting
+    </a></li><ul><li><a href="#auto1">
+      Creating formatted text
+    </a></li><li><a href="#auto2">
+        Bold, underline and reverse video attributes
+    </a></li><li><a href="#auto3">
+      The &quot;normal&quot; attribute
+    </a></li><li><a href="#auto4">
+      Color attributes
+    </a></li><li><a href="#auto5">
+      Parsing formatted text
+    </a></li><li><a href="#auto6">
+      Removing formatting
+    </a></li></ul></ol></div>
+    <div class="content">
+    <span/>
+
+    <p>
+      A complete howto would explain how to actually use the IRC client.
+      However, until that howto is written, here is a howto that explains how
+      to do text formatting for IRC.
+    </p>
+
+    <h2>
+      Text formatting
+    <a name="auto0"/></h2>
+
+    <p>
+      The text formatting support in Twisted Words is based on the widely used
+      <a href="http://www.mirc.com/" shape="rect">mIRC</a> format which supports bold,
+      underline, reverse video and colored text; nesting these attributes is
+      also supported.
+    </p>
+
+    <h3>
+      Creating formatted text
+    <a name="auto1"/></h3>
+
+    <p>
+      The API used for creating formatted text in the IRC client is almost the
+      same as that used by
+      Twisted <code class="API"><a href="http://twistedmatrix.com/documents/13.1.0/api/twisted.conch.insults.html" title="twisted.conch.insults">insults</a></code>.
+      Text attributes are built up by accessing and indexing attributes on
+      a special module-level attribute,
+      <code class="API"><a href="http://twistedmatrix.com/documents/13.1.0/api/twisted.words.protocols.irc.attributes.html" title="twisted.words.protocols.irc.attributes">twisted.words.protocols.irc.attributes</a></code>,
+      multiple values can be passed when indexing attributes to mix text with
+      nested text attributes. The resulting object can then be serialized to
+      formatted text, with
+      <code class="API"><a href="http://twistedmatrix.com/documents/13.1.0/api/twisted.words.protocols.irc.assembleFormattedText.html" title="twisted.words.protocols.irc.assembleFormattedText">twisted.words.protocols.irc.assembleFormattedText</a></code>,
+      suitable for use with any of the IRC client messaging functions.
+    </p>
+
+    <h3>
+        Bold, underline and reverse video attributes
+    <a name="auto2"/></h3>
+
+    <p>
+      Bold, underline and reverse video attributes are just flags and are the
+      simplest text attributes to apply. They are accessed by the names
+      <code>bold</code>, <code>underline</code> and <code>reverseVideo</code>,
+      respectively, on
+      <code class="API"><a href="http://twistedmatrix.com/documents/13.1.0/api/twisted.words.protocols.irc.attributes.html" title="twisted.words.protocols.irc.attributes">twisted.words.protocols.irc.attributes</a></code>. For
+      example, messaging someone the bold and underlined text &quot;Hello world!&quot;:
+
+      <pre class="python"><p class="py-linenumber">1
+2
+3
+4
+5
+6
+</p><span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">words</span>.<span class="py-src-variable">protocols</span>.<span class="py-src-variable">irc</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">assembleFormattedText</span>, <span class="py-src-variable">attributes</span> <span class="py-src-keyword">as</span> <span class="py-src-variable">A</span>
+
+<span class="py-src-comment"># Message &quot;someone&quot; the bold and underlined text &quot;Hello world!&quot;</span>
+<span class="py-src-variable">anIRCClient</span>.<span class="py-src-variable">msg</span>(<span class="py-src-string">'someone'</span>, <span class="py-src-variable">assembleFormattedText</span>(
+    <span class="py-src-variable">A</span>.<span class="py-src-variable">bold</span>[
+        <span class="py-src-variable">A</span>.<span class="py-src-variable">underline</span>[<span class="py-src-string">'Hello world!'</span>]])
+</pre>
+    </p>
+
+    <h3>
+      The &quot;normal&quot; attribute
+    <a name="auto3"/></h3>
+
+    <p>
+      At first glance a text attribute called &quot;normal&quot; that does not apply any
+      unusual text attributes may not seem that special but it can be quite
+      useful, both as a container:
+
+      <pre class="python"><p class="py-linenumber">1
+2
+3
+4
+5
+</p><span class="py-src-variable">A</span>.<span class="py-src-variable">normal</span>[
+    <span class="py-src-string">'This is normal text. '</span>,
+    <span class="py-src-variable">A</span>.<span class="py-src-variable">bold</span>[<span class="py-src-string">'This is bold text! '</span>],
+    <span class="py-src-string">'Back to normal'</span>,
+    <span class="py-src-variable">A</span>.<span class="py-src-variable">underline</span>[<span class="py-src-string">'This is underlined text!'</span>]]
+</pre>
+
+      And also as a way to temporarily disable text attributes without having to
+      close and respecify all text attributes for a brief piece of text:
+
+      <pre class="python"><p class="py-linenumber">1
+2
+</p><span class="py-src-variable">A</span>.<span class="py-src-variable">normal</span>[
+    <span class="py-src-variable">A</span>.<span class="py-src-variable">reverseVideo</span>[<span class="py-src-string">'This is reverse, '</span>, <span class="py-src-variable">A</span>.<span class="py-src-variable">normal</span>[<span class="py-src-string">'except for this'</span>], <span class="py-src-string">', text'</span>]]
+</pre>
+
+      It is worth noting that assembled text will always begin with the control
+      code to disable other attributes for the sake of correctness.
+    </p>
+
+    <h3>
+      Color attributes
+    <a name="auto4"/></h3>
+
+    <p>
+      Since colors for both the foreground and background can be specified with
+      IRC text formatting another level of attribute access is introduced.
+      Firstly the foreground or background, through the
+      <code>fg</code> and <code>bg</code> attribute names respectively, is
+      accessed and then the color name is accessed. The available color
+      attribute names are:
+    </p>
+
+    <ul>
+       <li>white</li>
+       <li>black</li>
+       <li>blue</li>
+       <li>green</li>
+       <li>lightRed</li>
+       <li>red</li>
+       <li>magenta</li>
+       <li>orange</li>
+       <li>yellow</li>
+       <li>lightGreen</li>
+       <li>cyan</li>
+       <li>lightCyan</li>
+       <li>lightBlue</li>
+       <li>lightMagenta</li>
+       <li>gray</li>
+       <li>lightGray</li>
+    </ul>
+
+    <p>
+      It is possible to nest foreground and background colors to alter both
+      for a single piece of text. For example to display black on green text:
+
+      <pre class="python"><p class="py-linenumber">1
+</p><span class="py-src-variable">A</span>.<span class="py-src-variable">fg</span>.<span class="py-src-variable">black</span>[<span class="py-src-variable">A</span>.<span class="py-src-variable">bg</span>.<span class="py-src-variable">green</span>[<span class="py-src-string">'Like a terminal!'</span>]]
+</pre>
+    </p>
+
+    <h3>
+      Parsing formatted text
+    <a name="auto5"/></h3>
+
+    <p>
+      Most IRC clients format text so it is logical that you may want to parse
+      this formatted text.
+      <code class="API"><a href="http://twistedmatrix.com/documents/13.1.0/api/twisted.words.protocols.irc.parseFormattedText.html" title="twisted.words.protocols.irc.parseFormattedText">twisted.words.protocols.irc.parseFormattedText</a></code>
+      will parse text into structured text attributes. It is worth noting that
+      while feeding the output of <code>parseFormattedText</code> back to
+      <code>assembleFormattedText</code> will produce the same final result,
+      the actual structure of the parsed text will differ. Color codes are
+      mapped from 0 to 15, codes greater than 15 will begin to wrap around.
+    </p>
+
+    <h3>
+      Removing formatting
+    <a name="auto6"/></h3>
+
+    <p>
+      In some cases, such as an automaton handling user input from IRC, it is
+      desirable to have all formatting stripped from text. This can be
+      accomplished with
+      <code class="API"><a href="http://twistedmatrix.com/documents/13.1.0/api/twisted.words.protocols.irc.stripFormatting.html" title="twisted.words.protocols.irc.stripFormatting">twisted.words.protocols.irc.stripFormatting</a></code>.
+    </p>
+  </div>
+
+    <p><a href="index.html">Index</a></p>
+    <span class="version">Version: 13.1.0</span>
+  </body>
+</html>

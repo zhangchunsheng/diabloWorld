@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html  PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN'  'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'><html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+<title>Twisted Documentation: Extremely Low-Level Socket Operations</title>
+<link href="stylesheet.css" rel="stylesheet" type="text/css"/>
+  </head>
+
+  <body bgcolor="white">
+    <h1 class="title">Extremely Low-Level Socket Operations</h1>
+    <div class="toc"><ol><li><a href="#auto0">Introduction</a></li><ul><li><a href="#auto1">sendmsg</a></li><li><a href="#auto2">recvmsg</a></li></ul><li><a href="#auto3">Sending And Receiving Regular Data</a></li><li><a href="#auto4">Copying File Descriptors</a></li></ol></div>
+    <div class="content">
+    <span/>
+
+    <h2>Introduction<a name="auto0"/></h2>
+
+    <p>
+      Beyond supporting streams of data (SOCK_STREAM) or datagrams (SOCK_DGRAM),
+      POSIX sockets have additional features not accessible via send(2) and
+      recv(2).  These features include things like scatter/gather I/O,
+      duplicating file descriptors into other processes, and accessing
+      out-of-band data.
+    </p>
+
+    <p>
+      Twisted includes a wrapper around the two C APIs which make these things
+      possible,
+      <a href="http://www.opengroup.org/onlinepubs/007908799/xns/sendmsg.html" shape="rect">sendmsg</a>
+      and
+      <a href="http://www.opengroup.org/onlinepubs/007908799/xns/recvmsg.html" shape="rect">recvmsg</a>.
+      This document covers their usage.  It is intended for Twisted maintainers.
+      Application developers looking for this functionality should look for the
+      high-level APIs Twisted provides on top of these wrappers.
+    </p>
+
+    <h3>sendmsg<a name="auto1"/></h3>
+
+    <p>
+      <code>sendmsg(2)</code> exposes nearly all sender-side functionality of a
+      socket.  For a SOCK_STREAM socket, it can send bytes that become part of
+      the stream of data being carried over the connection.  For a SOCK_DGRAM
+      socket, it can send bytes that become datagrams sent from the socket.  It
+      can send data from multiple memory locations (gather I/O).  Over AF_UNIX
+      sockets, it can copy file descriptors into whichever process is receiving
+      on the other side.  The wrapper included in Twisted,
+      <code class="API"><a href="http://twistedmatrix.com/documents/13.1.0/api/twisted.python.sendmsg.send1msg.html" title="twisted.python.sendmsg.send1msg">send1msg</a></code>, exposes
+      many (but not all) of these features.  This document covers the usage of
+      the features it does expose.  The alternate spelling for the wrapper is
+      used to indicate the primary limitation, which is it that the interface
+      supports sending only one <em>iovec</em> at a time.
+    </p>
+
+    <h3>recvmsg<a name="auto2"/></h3>
+
+    <p>
+      Likewise, <code>recvmsg(2)</code> exposes nearly all the receiver-side
+      functionality of a socket.  It can receive stream data over from a
+      SOCK_STREAM socket or datagrams from a SOCK_DGRAM socket. It can receive
+      that data into multiple memory locations (scatter I/O), and it can receive
+      those copied file descriptors.  The wrapper included in
+      Twisted, <code class="API"><a href="http://twistedmatrix.com/documents/13.1.0/api/twisted.python.sendmsg.recv1msg.html" title="twisted.python.sendmsg.recv1msg">recv1msg</a></code>,
+      exposes many (but not all) of these features.  This document covers the
+      usage of the features it does expose.  The alternate spelling for the
+      wrapper is used to indicate the primary limitation, which is that the
+      interface supports receiving only one <em>iovec</em> at a time.
+    </p>
+
+    <h2>Sending And Receiving Regular Data<a name="auto3"/></h2>
+
+    <p>
+      sendmsg can be used in a way which makes it equivalent to using the send
+      call.  The first argument to sendmsg is (in this case and all others) a
+      file descriptor over which to send the data.  The second argument is a
+      string giving the data to send.
+    </p>
+
+    <p>
+      On the other end, recvmsg can be used to replace a recv call.  The first
+      argument to recvmsg is (again, in all cases) a file descriptor over which
+      to receive the data.  The second argument is an integer giving the maximum
+      number of data to receive.
+    </p>
+
+    <div class="py-listing"><pre><p class="py-linenumber"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+</p><span class="py-src-comment"># Copyright (c) Twisted Matrix Laboratories.</span>
+<span class="py-src-comment"># See LICENSE for details.</span>
+
+<span class="py-src-string">&quot;&quot;&quot;
+Demonstration of sending bytes over a TCP connection using sendmsg.
+&quot;&quot;&quot;</span>
+
+<span class="py-src-keyword">from</span> <span class="py-src-variable">socket</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">socketpair</span>
+
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">python</span>.<span class="py-src-variable">sendmsg</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">send1msg</span>, <span class="py-src-variable">recv1msg</span>
+
+<span class="py-src-keyword">def</span> <span class="py-src-identifier">main</span>():
+    <span class="py-src-variable">foo</span>, <span class="py-src-variable">bar</span> = <span class="py-src-variable">socketpair</span>()
+    <span class="py-src-variable">sent</span> = <span class="py-src-variable">send1msg</span>(<span class="py-src-variable">foo</span>.<span class="py-src-variable">fileno</span>(), <span class="py-src-string">&quot;Hello, world&quot;</span>)
+    <span class="py-src-keyword">print</span> <span class="py-src-string">&quot;Sent&quot;</span>, <span class="py-src-variable">sent</span>, <span class="py-src-string">&quot;bytes&quot;</span>
+    (<span class="py-src-variable">received</span>, <span class="py-src-variable">flags</span>, <span class="py-src-variable">ancillary</span>) = <span class="py-src-variable">recv1msg</span>(<span class="py-src-variable">bar</span>.<span class="py-src-variable">fileno</span>(), <span class="py-src-number">1024</span>)
+    <span class="py-src-keyword">print</span> <span class="py-src-string">&quot;Received&quot;</span>, <span class="py-src-variable">repr</span>(<span class="py-src-variable">received</span>)
+    <span class="py-src-keyword">print</span> <span class="py-src-string">&quot;Extra stuff, boring in this case&quot;</span>, <span class="py-src-variable">flags</span>, <span class="py-src-variable">ancillary</span>
+
+<span class="py-src-keyword">if</span> <span class="py-src-variable">__name__</span> == <span class="py-src-string">'__main__'</span>:
+    <span class="py-src-variable">main</span>()
+</pre><div class="caption"> - <a href="listings/sendmsg/send_replacement.py"><span class="filename">listings/sendmsg/send_replacement.py</span></a></div></div>
+
+    <h2>Copying File Descriptors<a name="auto4"/></h2>
+
+    <p>
+      Used with an AF_UNIX socket, sendmsg send a copy of a file descriptor into
+      whatever process is receiving on the other end of the socket.  This is
+      done using the ancillary data argument.  Ancillary data consists of a list
+      of three-tuples.  A three-tuple constructed with SOL_SOCKET, SCM_RIGHTS,
+      and a platform-endian packed file descriptor number will copy that file
+      descriptor.
+    </p>
+
+    <p>
+      File descriptors copied this way must be received using a recvmsg call.
+      No special arguments are required to receive these descriptors.  They will
+      appear, encoded as a native-order string, in the ancillary data list
+      returned by recvmsg.
+    </p>
+
+    <div class="py-listing"><pre><p class="py-linenumber"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+</p><span class="py-src-comment"># Copyright (c) Twisted Matrix Laboratories.</span>
+<span class="py-src-comment"># See LICENSE for details.</span>
+
+<span class="py-src-string">&quot;&quot;&quot;
+Demonstration of copying a file descriptor over an AF_UNIX connection using
+sendmsg.
+&quot;&quot;&quot;</span>
+
+<span class="py-src-keyword">from</span> <span class="py-src-variable">os</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">pipe</span>, <span class="py-src-variable">read</span>, <span class="py-src-variable">write</span>
+<span class="py-src-keyword">from</span> <span class="py-src-variable">socket</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">SOL_SOCKET</span>, <span class="py-src-variable">socketpair</span>
+<span class="py-src-keyword">from</span> <span class="py-src-variable">struct</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">unpack</span>, <span class="py-src-variable">pack</span>
+
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">python</span>.<span class="py-src-variable">sendmsg</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">SCM_RIGHTS</span>, <span class="py-src-variable">send1msg</span>, <span class="py-src-variable">recv1msg</span>
+
+<span class="py-src-keyword">def</span> <span class="py-src-identifier">main</span>():
+    <span class="py-src-variable">foo</span>, <span class="py-src-variable">bar</span> = <span class="py-src-variable">socketpair</span>()
+    <span class="py-src-variable">reader</span>, <span class="py-src-variable">writer</span> = <span class="py-src-variable">pipe</span>()
+
+    <span class="py-src-comment"># Send a copy of the descriptor.  Notice that there must be at least one</span>
+    <span class="py-src-comment"># byte of normal data passed in.</span>
+    <span class="py-src-variable">sent</span> = <span class="py-src-variable">send1msg</span>(
+        <span class="py-src-variable">foo</span>.<span class="py-src-variable">fileno</span>(), <span class="py-src-string">&quot;\x00&quot;</span>, <span class="py-src-number">0</span>,
+        [(<span class="py-src-variable">SOL_SOCKET</span>, <span class="py-src-variable">SCM_RIGHTS</span>, <span class="py-src-variable">pack</span>(<span class="py-src-string">&quot;i&quot;</span>, <span class="py-src-variable">reader</span>))])
+
+    <span class="py-src-comment"># Receive the copy, including that one byte of normal data.</span>
+    <span class="py-src-variable">data</span>, <span class="py-src-variable">flags</span>, <span class="py-src-variable">ancillary</span> = <span class="py-src-variable">recv1msg</span>(<span class="py-src-variable">bar</span>.<span class="py-src-variable">fileno</span>(), <span class="py-src-number">1024</span>)
+    <span class="py-src-variable">duplicate</span> = <span class="py-src-variable">unpack</span>(<span class="py-src-string">&quot;i&quot;</span>, <span class="py-src-variable">ancillary</span>[<span class="py-src-number">0</span>][<span class="py-src-number">2</span>])[<span class="py-src-number">0</span>]
+
+    <span class="py-src-comment"># Demonstrate that the copy works just like the original</span>
+    <span class="py-src-variable">write</span>(<span class="py-src-variable">writer</span>, <span class="py-src-string">&quot;Hello, world&quot;</span>)
+    <span class="py-src-keyword">print</span> <span class="py-src-string">&quot;Read from original (%d): %r&quot;</span> % (<span class="py-src-variable">reader</span>, <span class="py-src-variable">read</span>(<span class="py-src-variable">reader</span>, <span class="py-src-number">6</span>))
+    <span class="py-src-keyword">print</span> <span class="py-src-string">&quot;Read from duplicate (%d): %r&quot;</span> % (<span class="py-src-variable">duplicate</span>, <span class="py-src-variable">read</span>(<span class="py-src-variable">duplicate</span>, <span class="py-src-number">6</span>))
+
+<span class="py-src-keyword">if</span> <span class="py-src-variable">__name__</span> == <span class="py-src-string">'__main__'</span>:
+    <span class="py-src-variable">main</span>()
+</pre><div class="caption"> - <a href="listings/sendmsg/copy_descriptor.py"><span class="filename">listings/sendmsg/copy_descriptor.py</span></a></div></div>
+
+  </div>
+
+    <p><a href="index.html">Index</a></p>
+    <span class="version">Version: 13.1.0</span>
+  </body>
+</html>

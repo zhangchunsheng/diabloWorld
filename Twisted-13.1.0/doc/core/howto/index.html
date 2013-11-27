@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html  PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN'  'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'><html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+<title>Twisted Documentation: Twisted Documentation</title>
+<link href="stylesheet.css" rel="stylesheet" type="text/css"/>
+  </head>
+
+  <body bgcolor="white">
+    <h1 class="title">Twisted Documentation</h1>
+    <div class="toc"><ol/></div>
+    <div class="content">
+  <span/>
+
+  <ul class="toc">
+    <li><a name="introduction" shape="rect">Introduction</a>
+
+      <ul>
+        <li><a href="vision.html" shape="rect">Executive summary</a><br clear="none"/>
+            Connecting your software - and having fun too!</li>
+      </ul>
+    </li>
+
+    <li><a name="tutorials" shape="rect">Getting Started</a>
+
+      <ul>
+        <li><a href="servers.html" shape="rect">Writing a TCP server</a><br clear="none"/>
+            Basic network servers with Twisted.</li>
+
+        <li><a href="clients.html" shape="rect">Writing a TCP client</a><br clear="none"/>
+            And basic clients.</li>
+
+        <li><a href="trial.html" shape="rect">Test-driven development with
+            Twisted</a><br clear="none"/>
+            Code without tests is broken by definition; Twisted makes it easy to test your network code.</li>
+
+        <li>
+          <a href="tutorial/index.html" shape="rect">Tutorial: Twisted From
+          Scratch</a>
+
+          <ol>
+            <li><a href="tutorial/intro.html" shape="rect">The Evolution of
+            Finger: building a simple finger service</a></li>
+
+            <li><a href="tutorial/protocol.html" shape="rect">The Evolution of
+            Finger: adding features to the finger service</a></li>
+
+            <li><a href="tutorial/style.html" shape="rect">The Evolution of
+            Finger: cleaning up the finger code</a></li>
+
+            <li><a href="tutorial/components.html" shape="rect">The Evolution of
+            Finger: moving to a component based
+            architecture</a></li>
+
+            <li><a href="tutorial/backends.html" shape="rect">The Evolution of
+            Finger: pluggable backends</a></li>
+
+            <li><a href="tutorial/web.html" shape="rect">The Evolution of
+            Finger: a clean web frontend</a></li>
+
+            <li><a href="tutorial/pb.html" shape="rect">The Evolution of Finger:
+            Twisted client support using Perspective
+            Broker</a></li>
+
+            <li><a href="tutorial/factory.html" shape="rect">The Evolution of
+            Finger: using a single factory for multiple
+            protocols</a></li>
+
+            <li><a href="tutorial/client.html" shape="rect">The Evolution of
+            Finger: a Twisted finger client</a></li>
+
+            <li><a href="tutorial/library.html" shape="rect">The Evolution of
+            Finger: making a finger library</a></li>
+
+            <li><a href="tutorial/configuration.html" shape="rect">The Evolution
+            of Finger: configuration and packaging of the finger
+            service</a></li>
+          </ol>
+        </li>
+
+        <li><a href="quotes.html" shape="rect">Setting up the TwistedQuotes
+        application</a></li>
+
+        <li><a href="design.html" shape="rect">Designing a Twisted application</a></li>
+      </ul>
+    </li>
+
+    <li><a name="events" shape="rect">Networking and Other Event Sources</a>
+
+      <ul>
+        <li><a href="internet-overview.html" shape="rect">Twisted
+        Internet</a><br clear="none"/>
+            A brief overview of the <code>twisted.internet</code> package.</li>
+
+        <li><a href="reactor-basics.html" shape="rect">Reactor basics</a><br clear="none"/>
+            The event loop at the core of your program.</li>
+
+        <li><a href="ssl.html" shape="rect">Using SSL in Twisted</a><br clear="none"/>
+            Add some security to your network transport.</li>
+
+        <li><a href="udp.html" shape="rect">UDP Networking</a><br clear="none"/>
+            Multicast too!</li>
+
+        <li><a href="process.html" shape="rect">Using processes</a><br clear="none"/>
+            Launching sub-processes, the correct way.</li>
+
+        <li><a href="defer-intro.html" shape="rect">Introduction to Deferreds</a><br clear="none"/>
+            Like callback functions, only a lot better.</li>
+
+        <li><a href="defer.html" shape="rect">Deferred reference</a><br clear="none"/>
+            In-depth information on Deferreds.</li>
+
+        <li><a href="gendefer.html" shape="rect">Generating deferreds</a><br clear="none"/>
+            More about Deferreds.</li>
+
+        <li><a href="time.html" shape="rect">Scheduling</a><br clear="none"/>
+            Timeouts, repeated events, and more: when you want things to happen later.</li>
+
+        <li><a href="threading.html" shape="rect">Using threads</a><br clear="none"/>
+            Running code in threads, and interacting with Twisted in a thread-safe manner.</li>
+
+        <li><a href="producers.html" shape="rect">Producers and Consumers: Efficient High-Volume Streaming</a><br clear="none"/>
+            How to pause when buffers fill up.</li>
+
+        <li><a href="choosing-reactor.html" shape="rect">Choosing a reactor and
+        GUI toolkit integration</a><br clear="none"/>
+            GTK+, Windows, epoll() and more: use your GUI of choice, or a faster event loop.</li>
+      </ul>
+    </li>
+
+    <li><a name="highlevel" shape="rect">High-Level Infrastructure</a>
+      <ul>
+        <li><a href="endpoints.html" shape="rect">Getting Connected with Endpoints</a><br clear="none"/>
+            Create configurable applications that support multiple transports (e.g. TCP and SSL).</li>
+
+        <li><a href="components.html" shape="rect">Interfaces and Adapters
+        (Component Architecture)</a><br clear="none"/>
+            When inheritance isn't enough.</li>
+
+        <li><a href="cred.html" shape="rect">Cred: Pluggable
+        Authentication</a><br clear="none"/> Implementing authentication and
+        authorization that is configurable, pluggable and
+        re-usable.</li>
+
+        <li><a href="plugin.html" shape="rect">Twisted's plugin architecture</a><br clear="none"/>
+            A generic plugin system for extendable programs.</li>
+      </ul>
+    </li>
+
+    <li><a name="deploying" shape="rect">Deploying Twisted Applications</a>
+
+      <ul>
+        <li><a href="basics.html" shape="rect">Helper programs and scripts
+        (twistd, ..)</a><br clear="none"/>
+            <code>twistd</code> lets you daemonize and run your
+            application.</li>
+
+        <li><a href="application.html" shape="rect">Using the Twisted Application
+             Framework</a><br clear="none"/>
+             Writing code that <code>twistd</code> can run.</li>
+
+        <li><a href="tap.html" shape="rect">Writing Twisted Application Plugins
+        for twistd</a><br clear="none"/>
+            More powerful <code>twistd</code> deployment method.</li>
+
+        <li><a href="systemd.html" shape="rect">Deploying Twisted with
+            systemd</a><br clear="none"/> Use <code>systemd</code> to launch and
+            monitor Twisted applications</li>
+      </ul>
+    </li>
+
+    <li><a name="utilities" shape="rect">Utilities</a>
+
+      <ul>
+        <li><a href="logging.html" shape="rect">Logging</a><br clear="none"/>
+            Keep a record of what your application is up to.</li>
+
+        <li><a href="constants.html" shape="rect">Symbolic constants</a><br clear="none"/>
+            enum-like constants.</li>
+
+        <li><a href="rdbms.html" shape="rect">Twisted RDBMS support with
+            adbapi</a><br clear="none"/>
+            Using SQL with your relational database via DB-API adapters.</li>
+
+        <li><a href="options.html" shape="rect">Parsing command-line arguments</a><br clear="none"/>
+            The command-line argument parsing used by <code>twistd</code>.</li>
+
+        <li><a href="dirdbm.html" shape="rect">Using Dirdbm: Directory-based Storage</a><br clear="none"/>
+            A simplistic way to store data on your filesystem.</li>
+
+        <li><a href="testing.html" shape="rect">Tips for writing tests for Twisted
+        code using Trial</a><br clear="none"/>
+            More information on writing tests.</li>
+
+        <li><a href="sendmsg.html" shape="rect">Extremely Low-Level Socket Operations</a><br clear="none"/>
+            Using wrappers for sendmsg(2) and recvmsg(2).</li>
+      </ul>
+    </li>
+
+    <li><a name="amp" shape="rect">Asynchronous Messaging Protocol (AMP)</a>
+
+      <ul>
+        <li><a href="amp.html" shape="rect">Asynchronous Messaging Protocol Overview</a><br clear="none"/>
+            A two-way asynchronous message passing protocol, for when HTTP isn't good enough.</li>
+      </ul>
+    </li>
+
+    <li><a name="pb" shape="rect">Perspective Broker</a>
+      <ul>
+        <li><a href="pb.html" shape="rect">Twisted Spread</a><br clear="none"/>
+            A remote method invocation (RMI) protocol: call methods on remote objects.</li>
+
+        <li><a href="pb-intro.html" shape="rect">Introduction to Perspective
+        Broker</a></li>
+
+        <li><a href="pb-usage.html" shape="rect">Using Perspective
+        Broker</a></li>
+
+        <li><a href="pb-clients.html" shape="rect">Managing Clients of
+        Perspectives</a></li>
+
+        <li><a href="pb-copyable.html" shape="rect">Passing Complex
+        Types</a></li>
+
+        <li><a href="pb-cred.html" shape="rect">Authentication with Perspective
+        Broker</a></li>
+
+        <li><a href="pb-limits.html" shape="rect">PB Limits</a></li>
+      </ul>
+    </li>
+
+    <li><a name="appendix" shape="rect">Appendix</a>
+
+      <ul>
+        <li><a href="python3.html" shape="rect">Porting to Python 3</a></li>
+
+        <li><a href="glossary.html" shape="rect">Glossary</a></li>
+
+        <li class="ignoretoc"><a href="debug-with-emacs.html" shape="rect">Tips
+        for debugging with emacs</a></li>
+      </ul>
+    </li>
+  </ul>
+
+</div>
+
+    <p><a href="index.html">Index</a></p>
+    <span class="version">Version: 13.1.0</span>
+  </body>
+</html>

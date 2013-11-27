@@ -1,0 +1,7 @@
+setup.py
+affinity/__init__.py
+affinity/_affinity.c
+affinity.egg-info/PKG-INFO
+affinity.egg-info/SOURCES.txt
+affinity.egg-info/dependency_links.txt
+affinity.egg-info/top_level.txt

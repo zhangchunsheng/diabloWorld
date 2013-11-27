@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="utf-8"?><!DOCTYPE html  PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN'  'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'><html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+<title>Twisted Documentation: <b>A</b>synchronous <b>M</b>essaging <b>P</b>rotocol Overview</title>
+<link href="stylesheet.css" rel="stylesheet" type="text/css"/>
+  </head>
+
+  <body bgcolor="white">
+    <h1 class="title"><b>A</b>synchronous <b>M</b>essaging <b>P</b>rotocol Overview</h1>
+    <div class="toc"><ol><li><a href="#auto0">Setting Up</a></li><li><a href="#auto1">Commands</a></li><li><a href="#auto2">Locators</a></li><li><a href="#auto3">Box Receivers</a></li></ol></div>
+    <div class="content">
+    <span/>
+
+    <p>The purpose of this guide is to describe the uses for and usage of <code class="API"><a href="http://twistedmatrix.com/documents/13.1.0/api/twisted.protocols.amp.html" title="twisted.protocols.amp">twisted.protocols.amp</a></code> beyond what is explained in the API documentation.  It will show you how to implement an AMP server which can respond to commands or interact directly with individual messages.  It will also show you how to implement an AMP client which can issue commands to a server.</p>
+
+    <p>AMP is a bidirectional command/response-oriented protocol intended to be extended with application-specific request types and handlers.  Various simple data types are supported and support for new data types can be added by applications.</p>
+
+    <h2>Setting Up<a name="auto0"/></h2>
+
+    <p>AMP runs over a stream-oriented connection-based protocol, such as TCP or SSL.  Before you can use any features of the AMP protocol, you need a connection.  The protocol class to use to establish an AMP connection is <code class="API"><a href="http://twistedmatrix.com/documents/13.1.0/api/twisted.protocols.amp.AMP.html" title="twisted.protocols.amp.AMP">AMP</a></code>.  Connection setup works as it does for almost all protocols in Twisted.  For example, you can set up a listening AMP server using a server endpoint:</p>
+
+    <div class="py-listing"><pre><p class="py-linenumber"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+</p><span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">protocols</span>.<span class="py-src-variable">amp</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">AMP</span>
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">internet</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">reactor</span>
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">internet</span>.<span class="py-src-variable">protocol</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">Factory</span>
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">internet</span>.<span class="py-src-variable">endpoints</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">TCP4ServerEndpoint</span>
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">application</span>.<span class="py-src-variable">service</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">Application</span>
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">application</span>.<span class="py-src-variable">internet</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">StreamServerEndpointService</span>
+
+<span class="py-src-variable">application</span> = <span class="py-src-variable">Application</span>(<span class="py-src-string">&quot;basic AMP server&quot;</span>)
+
+<span class="py-src-variable">endpoint</span> = <span class="py-src-variable">TCP4ServerEndpoint</span>(<span class="py-src-variable">reactor</span>, <span class="py-src-number">8750</span>)
+<span class="py-src-variable">factory</span> = <span class="py-src-variable">Factory</span>()
+<span class="py-src-variable">factory</span>.<span class="py-src-variable">protocol</span> = <span class="py-src-variable">AMP</span>
+<span class="py-src-variable">service</span> = <span class="py-src-variable">StreamServerEndpointService</span>(<span class="py-src-variable">endpoint</span>, <span class="py-src-variable">factory</span>)
+<span class="py-src-variable">service</span>.<span class="py-src-variable">setServiceParent</span>(<span class="py-src-variable">application</span>)
+</pre><div class="caption">Source listing - <a href="listings/amp/basic_server.tac"><span class="filename">listings/amp/basic_server.tac</span></a></div></div>
+
+    <p>And you can connect to an AMP server using a client endpoint:</p>
+
+    <div class="py-listing"><pre><p class="py-linenumber"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+</p><span class="py-src-keyword">if</span> <span class="py-src-variable">__name__</span> == <span class="py-src-string">'__main__'</span>:
+    <span class="py-src-keyword">import</span> <span class="py-src-variable">basic_client</span>
+    <span class="py-src-keyword">raise</span> <span class="py-src-variable">SystemExit</span>(<span class="py-src-variable">basic_client</span>.<span class="py-src-variable">main</span>())
+
+<span class="py-src-keyword">from</span> <span class="py-src-variable">sys</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">stdout</span>
+
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">python</span>.<span class="py-src-variable">log</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">startLogging</span>, <span class="py-src-variable">err</span>
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">protocols</span>.<span class="py-src-variable">amp</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">AMP</span>
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">internet</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">reactor</span>
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">internet</span>.<span class="py-src-variable">protocol</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">Factory</span>
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">internet</span>.<span class="py-src-variable">endpoints</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">TCP4ClientEndpoint</span>
+
+<span class="py-src-keyword">def</span> <span class="py-src-identifier">connect</span>():
+    <span class="py-src-variable">endpoint</span> = <span class="py-src-variable">TCP4ClientEndpoint</span>(<span class="py-src-variable">reactor</span>, <span class="py-src-string">&quot;127.0.0.1&quot;</span>, <span class="py-src-number">8750</span>)
+    <span class="py-src-keyword">return</span> <span class="py-src-variable">endpoint</span>.<span class="py-src-variable">connect</span>(<span class="py-src-variable">Factory</span>.<span class="py-src-variable">forProtocol</span>(<span class="py-src-variable">AMP</span>))
+
+
+<span class="py-src-keyword">def</span> <span class="py-src-identifier">main</span>():
+    <span class="py-src-variable">startLogging</span>(<span class="py-src-variable">stdout</span>)
+
+    <span class="py-src-variable">d</span> = <span class="py-src-variable">connect</span>()
+    <span class="py-src-variable">d</span>.<span class="py-src-variable">addErrback</span>(<span class="py-src-variable">err</span>, <span class="py-src-string">&quot;Connection failed&quot;</span>)
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">done</span>(<span class="py-src-parameter">ignored</span>):
+        <span class="py-src-variable">reactor</span>.<span class="py-src-variable">stop</span>()
+    <span class="py-src-variable">d</span>.<span class="py-src-variable">addCallback</span>(<span class="py-src-variable">done</span>)
+
+    <span class="py-src-variable">reactor</span>.<span class="py-src-variable">run</span>()
+</pre><div class="caption">Source listing - <a href="listings/amp/basic_client.py"><span class="filename">listings/amp/basic_client.py</span></a></div></div>
+
+    <h2>Commands<a name="auto1"/></h2>
+
+    <p>Either side of an AMP connection can issue a command to the other side.  Each kind of command is represented as a subclass of <code class="API"><a href="http://twistedmatrix.com/documents/13.1.0/api/twisted.protocols.amp.Command.html" title="twisted.protocols.amp.Command">Command</a></code>.  A <code>Command</code> defines arguments, response values, and error conditions.</p>
+
+    <pre class="python"><p class="py-linenumber"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+</p><span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">protocols</span>.<span class="py-src-variable">amp</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">Integer</span>, <span class="py-src-variable">String</span>, <span class="py-src-variable">Unicode</span>, <span class="py-src-variable">Command</span>
+
+<span class="py-src-keyword">class</span> <span class="py-src-identifier">UsernameUnavailable</span>(<span class="py-src-parameter">Exception</span>):
+    <span class="py-src-keyword">pass</span>
+
+<span class="py-src-keyword">class</span> <span class="py-src-identifier">RegisterUser</span>(<span class="py-src-parameter">Command</span>):
+    <span class="py-src-variable">arguments</span> = [(<span class="py-src-string">'username'</span>, <span class="py-src-variable">Unicode</span>()),
+                 (<span class="py-src-string">'publickey'</span>, <span class="py-src-variable">String</span>())]
+
+    <span class="py-src-variable">response</span> = [(<span class="py-src-string">'uid'</span>, <span class="py-src-variable">Integer</span>())]
+
+    <span class="py-src-variable">errors</span> = {<span class="py-src-variable">UsernameUnavailable</span>: <span class="py-src-string">'username-unavailable'</span>}
+</pre>
+
+    <p>The definition of the command's signature - its arguments, response, and possible error conditions - is separate from the implementation of the behavior to execute when the command is received.  The <code>Command</code> subclass only defines the former.</p>
+
+    <p>Commands are issued by calling <code>callRemote</code> on either side of the connection.  This method returns a <code>Deferred</code> which eventually fires with the result of the command.</p>
+
+    <div class="py-listing"><pre><p class="py-linenumber"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+</p><span class="py-src-keyword">if</span> <span class="py-src-variable">__name__</span> == <span class="py-src-string">'__main__'</span>:
+    <span class="py-src-keyword">import</span> <span class="py-src-variable">command_client</span>
+    <span class="py-src-keyword">raise</span> <span class="py-src-variable">SystemExit</span>(<span class="py-src-variable">command_client</span>.<span class="py-src-variable">main</span>())
+
+<span class="py-src-keyword">from</span> <span class="py-src-variable">sys</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">stdout</span>
+
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">python</span>.<span class="py-src-variable">log</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">startLogging</span>, <span class="py-src-variable">err</span>
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">protocols</span>.<span class="py-src-variable">amp</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">Integer</span>, <span class="py-src-variable">String</span>, <span class="py-src-variable">Unicode</span>, <span class="py-src-variable">Command</span>
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">internet</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">reactor</span>
+
+<span class="py-src-keyword">from</span> <span class="py-src-variable">basic_client</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">connect</span>
+
+<span class="py-src-keyword">class</span> <span class="py-src-identifier">UsernameUnavailable</span>(<span class="py-src-parameter">Exception</span>):
+    <span class="py-src-keyword">pass</span>
+
+
+<span class="py-src-keyword">class</span> <span class="py-src-identifier">RegisterUser</span>(<span class="py-src-parameter">Command</span>):
+    <span class="py-src-variable">arguments</span> = [(<span class="py-src-string">'username'</span>, <span class="py-src-variable">Unicode</span>()),
+                 (<span class="py-src-string">'publickey'</span>, <span class="py-src-variable">String</span>())]
+
+    <span class="py-src-variable">response</span> = [(<span class="py-src-string">'uid'</span>, <span class="py-src-variable">Integer</span>())]
+
+    <span class="py-src-variable">errors</span> = {<span class="py-src-variable">UsernameUnavailable</span>: <span class="py-src-string">'username-unavailable'</span>}
+
+
+<span class="py-src-keyword">def</span> <span class="py-src-identifier">main</span>():
+    <span class="py-src-variable">startLogging</span>(<span class="py-src-variable">stdout</span>)
+
+    <span class="py-src-variable">d</span> = <span class="py-src-variable">connect</span>()
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">connected</span>(<span class="py-src-parameter">protocol</span>):
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">protocol</span>.<span class="py-src-variable">callRemote</span>(
+            <span class="py-src-variable">RegisterUser</span>,
+            <span class="py-src-variable">username</span>=<span class="py-src-string">u'alice'</span>,
+            <span class="py-src-variable">publickey</span>=<span class="py-src-string">'ssh-rsa AAAAB3NzaC1yc2 alice@actinium'</span>)
+    <span class="py-src-variable">d</span>.<span class="py-src-variable">addCallback</span>(<span class="py-src-variable">connected</span>)
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">registered</span>(<span class="py-src-parameter">result</span>):
+        <span class="py-src-keyword">print</span> <span class="py-src-string">'Registration result:'</span>, <span class="py-src-variable">result</span>
+    <span class="py-src-variable">d</span>.<span class="py-src-variable">addCallback</span>(<span class="py-src-variable">registered</span>)
+
+    <span class="py-src-variable">d</span>.<span class="py-src-variable">addErrback</span>(<span class="py-src-variable">err</span>, <span class="py-src-string">&quot;Failed to register&quot;</span>)
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">finished</span>(<span class="py-src-parameter">ignored</span>):
+        <span class="py-src-variable">reactor</span>.<span class="py-src-variable">stop</span>()
+    <span class="py-src-variable">d</span>.<span class="py-src-variable">addCallback</span>(<span class="py-src-variable">finished</span>)
+
+    <span class="py-src-variable">reactor</span>.<span class="py-src-variable">run</span>()
+</pre><div class="caption">Source listing - <a href="listings/amp/command_client.py"><span class="filename">listings/amp/command_client.py</span></a></div></div>
+
+    <h2>Locators<a name="auto2"/></h2>
+
+
+    <p>The logic for handling a command can be specified as an object separate from the <code>AMP</code> instance which interprets and formats bytes over the network.</p>
+
+    <pre class="python"><p class="py-linenumber"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+</p><span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">protocols</span>.<span class="py-src-variable">amp</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">CommandLocator</span>
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">python</span>.<span class="py-src-variable">filepath</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">FilePath</span>
+
+<span class="py-src-keyword">class</span> <span class="py-src-identifier">UsernameUnavailable</span>(<span class="py-src-parameter">Exception</span>):
+    <span class="py-src-keyword">pass</span>
+
+<span class="py-src-keyword">class</span> <span class="py-src-identifier">UserRegistration</span>(<span class="py-src-parameter">CommandLocator</span>):
+    <span class="py-src-variable">uidCounter</span> = <span class="py-src-number">0</span>
+
+    @<span class="py-src-variable">RegisterUser</span>.<span class="py-src-variable">responder</span>
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">register</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">username</span>, <span class="py-src-parameter">publickey</span>):
+        <span class="py-src-variable">path</span> = <span class="py-src-variable">FilePath</span>(<span class="py-src-variable">username</span>)
+        <span class="py-src-keyword">if</span> <span class="py-src-variable">path</span>.<span class="py-src-variable">exists</span>():
+            <span class="py-src-keyword">raise</span> <span class="py-src-variable">UsernameUnavailable</span>()
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">uidCounter</span> += <span class="py-src-number">1</span>
+        <span class="py-src-variable">path</span>.<span class="py-src-variable">setContent</span>(<span class="py-src-string">'%d %s\n'</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">uidCounter</span>, <span class="py-src-variable">publickey</span>))
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">self</span>.<span class="py-src-variable">uidCounter</span>
+</pre>
+
+    <p>When you define a separate <code>CommandLocator</code> subclass, use it by passing an instance of it to the <code>AMP</code> initializer.</p>
+
+    <pre class="python"><p class="py-linenumber">1
+2
+</p><span class="py-src-variable">factory</span> = <span class="py-src-variable">Factory</span>()
+<span class="py-src-variable">factory</span>.<span class="py-src-variable">protocol</span> = <span class="py-src-keyword">lambda</span>: <span class="py-src-variable">AMP</span>(<span class="py-src-variable">locator</span>=<span class="py-src-variable">UserRegistration</span>())
+</pre>
+
+    <p>If no locator is passed in, <code>AMP</code> acts as its own locator.  Command responders can be defined on an <code>AMP</code> subclass, just as the responder was defined on the <code>UserRegistration</code> example above.</p>
+
+    <h2>Box Receivers<a name="auto3"/></h2>
+
+    <p>AMP conversations consist of an exchange of messages called <em>boxes</em>.  A <em>box</em> consists of a sequence of pairs of key and value (for example, the pair <code>username</code> and <code>alice</code>).  Boxes are generally represented as <code>dict</code> instances.  Normally boxes are passed back and forth to implement the command request/response features described above.  The logic for handling each box can be specified as an object separate from the <code>AMP</code> instance.</p>
+
+    <pre class="python"><p class="py-linenumber"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+</p><span class="py-src-keyword">from</span> <span class="py-src-variable">zope</span>.<span class="py-src-variable">interface</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">implements</span>
+
+<span class="py-src-keyword">from</span> <span class="py-src-variable">twisted</span>.<span class="py-src-variable">protocols</span>.<span class="py-src-variable">amp</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">IBoxReceiver</span>
+
+<span class="py-src-keyword">class</span> <span class="py-src-identifier">BoxReflector</span>(<span class="py-src-parameter">object</span>):
+    <span class="py-src-variable">implements</span>(<span class="py-src-variable">IBoxReceiver</span>)
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">startReceivingBoxes</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">boxSender</span>):
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">boxSender</span> = <span class="py-src-variable">boxSender</span>
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">ampBoxReceived</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">box</span>):
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">boxSender</span>.<span class="py-src-variable">sendBox</span>(<span class="py-src-variable">box</span>)
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">stopReceivingBoxes</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">reason</span>):
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">boxSender</span> = <span class="py-src-variable">None</span>
+</pre>
+
+    <p>These methods parallel those of <code>IProtocol</code>.  Startup notification is given by <code>startReceivingBoxes</code>.  The argument passed to it is an <code>IBoxSender</code> provider, which can be used to send boxes back out over the network.  <code>ampBoxReceived</code> delivers notification for a complete box having been received.  And last, <code>stopReceivingBoxes</code> notifies the object that no more boxes will be received and no more can be sent.  The argument passed to it is a <code>Failure</code> which may contain details about what caused the conversation to end.</p>
+
+    <p>To use a custom <code>IBoxReceiver</code>, pass it to the <code>AMP</code> initializer.</p>
+
+    <pre class="python"><p class="py-linenumber">1
+2
+</p><span class="py-src-variable">factory</span> = <span class="py-src-variable">Factory</span>()
+<span class="py-src-variable">factory</span>.<span class="py-src-variable">protocol</span> = <span class="py-src-keyword">lambda</span>: <span class="py-src-variable">AMP</span>(<span class="py-src-variable">boxReceiver</span>=<span class="py-src-variable">BoxReflector</span>())
+</pre>
+
+    <p>If no box receiver is passed in, <code>AMP</code> acts as its own box receiver.  It handles boxes by treating them as command requests or responses and delivering them to the appropriate responder or as a result to a <code>callRemote</code> <code>Deferred</code>.</p>
+
+  </div>
+
+    <p><a href="index.html">Index</a></p>
+    <span class="version">Version: 13.1.0</span>
+  </body>
+</html>
